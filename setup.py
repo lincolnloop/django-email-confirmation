@@ -13,6 +13,9 @@ setup(
         'emailconfirmation': [
             'templates/emailconfirmation/*.txt'
         ],
+        'emailconfirmation.tests': [
+            'templates/emailconfirmation/*.html'
+        ],
     },
     zip_safe=False,
     classifiers=[
