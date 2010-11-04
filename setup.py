@@ -23,5 +23,6 @@ setup(
         'Operating System :: OS Independent',
         'Programming Language :: Python',
         'Framework :: Django',
-    ]
+    ],
+    test_suite='runtests.runtests',
 )
