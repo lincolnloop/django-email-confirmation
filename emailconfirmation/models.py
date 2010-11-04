@@ -93,14 +93,7 @@ class EmailConfirmationManager(models.Manager):
         salt = sha_constructor(str(random())).hexdigest()[:5]
         confirmation_key = sha_constructor(salt + email_address.email).hexdigest()
         current_site = Site.objects.get_current()
-        # check for the url with the dotted view path
-        try:
-            path = reverse("emailconfirmation.views.confirm_email",
-                args=[confirmation_key])
-        except NoReverseMatch:
-            # or get path with named urlconf instead
-            path = reverse(
-                "emailconfirmation_confirm_email", args=[confirmation_key])
+        path = reverse("emailconfirmation_confirm", args=[confirmation_key])
         protocol = getattr(settings, "DEFAULT_HTTP_PROTOCOL", "http")
         activate_url = u"%s://%s%s" % (
             protocol,
