@@ -8,9 +8,12 @@ from django.conf import settings
 if not settings.configured:
     settings.configure(
         DATABASE_ENGINE='sqlite3',
+        SITE_ID=1,
+        ROOT_URLCONF='emailconfirmation.urls',
         INSTALLED_APPS=[
             'django.contrib.contenttypes',
             'django.contrib.auth',
+            'django.contrib.sites',
             'emailconfirmation',
         ]
     )
