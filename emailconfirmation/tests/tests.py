@@ -395,3 +395,35 @@ class ViewTests(EmailConfirmationTestCase):
         self.assertTemplateUsed(response, "emailconfirmation/confirm_email.html")
         self.assertEqual(response.context["email_address"], address)
         self.assertEqual(models.EmailAddress.objects.get(pk=address.pk).verified, True)
+        self.assertContains(response, "Confirmed %s" % self.email)
+
+
+    def test_confirm_bad_key(self):
+        """
+        ``confirm`` takes the given confirmation key and attempts to confirm that email.
+
+        """
+        url = reverse("emailconfirmation_confirm", args=["junk"])
+
+        response = self.client.get(url)
+
+        self.assertEqual(response.context["email_address"], None)
+        self.assertContains(response, "Invalid or expired key")
+
+
+    def test_confirm_lowercases_key(self):
+        """
+        ``confirm`` lowercases the key it is given.
+
+        """
+        address = models.EmailAddress.objects.add_email(self.user, self.email)
+        confirmation = models.EmailConfirmation.objects.get(email_address=address)
+
+        url = reverse("emailconfirmation_confirm", args=[confirmation.confirmation_key.upper()])
+
+        response = self.client.get(url)
+
+        self.assertEqual(response.context["email_address"], address)
+        self.assertEqual(models.EmailAddress.objects.get(pk=address.pk).verified, True)
+        self.assertContains(response, "Confirmed %s" % self.email)
+
