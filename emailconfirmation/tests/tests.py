@@ -2,10 +2,8 @@ import datetime
 
 from django.core import mail
 from django.core.urlresolvers import reverse
-from django.template import Template
 from django.test import TestCase
 from django.test.signals import template_rendered
-from django.test.utils import instrumented_test_render
 
 from django.contrib.auth.models import User
 from django.contrib.sites.models import Site
@@ -32,9 +30,6 @@ class EmailConfirmationTestCase(TestCase):
                                               NO_SETTING)
         models.settings.EMAIL_CONFIRMATION_DAYS = 10
 
-        Template._old_render = Template._render
-        Template._render = instrumented_test_render
-
         self.templates = []
         self.contexts = []
         template_rendered.connect(self._template_rendered)
@@ -45,9 +40,6 @@ class EmailConfirmationTestCase(TestCase):
             delattr(models.settings._wrapped, "EMAIL_CONFIRMATION_DAYS")
         else:
             models.settings.EMAIL_CONFIRMATION_DAYS = self._old_confirmation_days
-
-        Template._render = Template._old_render
-        del Template._old_render
 
         template_rendered.disconnect(self._template_rendered)
 
