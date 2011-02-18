@@ -13,6 +13,7 @@ from django.contrib.sites.models import Site
 from django.contrib.auth.models import User
 
 from emailconfirmation.signals import email_confirmed, email_confirmation_sent
+from emailconfrimation import app_settings
 
 # this code based in-part on django-registration
 
@@ -148,7 +149,7 @@ class EmailConfirmation(models.Model):
     
     def key_expired(self):
         expiration_date = self.sent + datetime.timedelta(
-            days=settings.EMAIL_CONFIRMATION_DAYS)
+            days=app_settings.EMAIL_CONFIRMATION_DAYS)
         return expiration_date <= datetime.datetime.now()
     key_expired.boolean = True
     
