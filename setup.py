@@ -1,6 +1,5 @@
 from setuptools import setup, find_packages
 
-
 setup(
     name="django-email-confirmation",
     version="0.2.dev5",
@@ -14,6 +13,9 @@ setup(
         "emailconfirmation": [
             "templates/emailconfirmation/*.txt"
         ],
+        'emailconfirmation.tests': [
+            'templates/emailconfirmation/*.html'
+        ],
     },
     zip_safe=False,
     classifiers=[
@@ -24,5 +26,6 @@ setup(
         "Operating System :: OS Independent",
         "Programming Language :: Python",
         "Framework :: Django",
-    ]
+    ],
+    test_suite='runtests.runtests',
 )
