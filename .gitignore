@@ -1,1 +1,2 @@
 django_email_confirmation.egg-info/
+*.pyc

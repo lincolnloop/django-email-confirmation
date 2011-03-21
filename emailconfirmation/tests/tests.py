@@ -1,5 +1,7 @@
 import datetime
+import os
 
+from django.conf import settings
 from django.core import mail
 from django.core.urlresolvers import reverse
 from django.test import TestCase
@@ -8,7 +10,7 @@ from django.test.signals import template_rendered
 from django.contrib.auth.models import User
 from django.contrib.sites.models import Site
 
-from emailconfirmation import models, signals
+from emailconfirmation import models, signals, app_settings
 
 
 
@@ -16,19 +18,26 @@ NO_SETTING = object()
 
 
 class EmailConfirmationTestCase(TestCase):
+    urls = 'emailconfirmation.tests.urls'
 
     def _template_rendered(self, sender, template, context, **kwargs):
         self.templates.append(template)
         self.contexts.append(context)
 
     def setUp(self):
+        self.old_TEMPLATE_DIRS = settings.TEMPLATE_DIRS
+        settings.TEMPLATE_DIRS = (
+            os.path.join(
+                os.path.dirname(__file__),
+                'templates'
+            )
+        ,)
+        
         self.user = User.objects.create(username="daphne")
         self.email = "daphne@example.com"
 
-        self._old_confirmation_days = getattr(models.settings,
-                                              "EMAIL_CONFIRMATION_DAYS",
-                                              NO_SETTING)
-        models.settings.EMAIL_CONFIRMATION_DAYS = 10
+        self._old_confirmation_days = app_settings.EMAIL_CONFIRMATION_DAYS
+        app_settings.EMAIL_CONFIRMATION_DAYS = 14
 
         self.templates = []
         self.contexts = []
@@ -36,11 +45,10 @@ class EmailConfirmationTestCase(TestCase):
 
 
     def tearDown(self):
-        if self._old_confirmation_days is NO_SETTING:
-            delattr(models.settings._wrapped, "EMAIL_CONFIRMATION_DAYS")
-        else:
-            models.settings.EMAIL_CONFIRMATION_DAYS = self._old_confirmation_days
-
+        settings.TEMPLATE_DIRS = self.old_TEMPLATE_DIRS
+        
+        app_settings.EMAIL_CONFIRMATION_DAYS = self._old_confirmation_days
+        
         template_rendered.disconnect(self._template_rendered)
 
 
@@ -276,7 +284,7 @@ class EmailConfirmationManagerTests(EmailConfirmationTestCase):
         """
         address = models.EmailAddress.objects.add_email(self.user, self.email)
         confirmation = models.EmailConfirmation.objects.get(email_address=address)
-        confirmation.sent = confirmation.sent - datetime.timedelta(days=11)
+        confirmation.sent = confirmation.sent - datetime.timedelta(days=15)
         confirmation.save()
 
         result = models.EmailConfirmation.objects.confirm_email(confirmation.confirmation_key)
@@ -334,7 +342,7 @@ class EmailConfirmationManagerTests(EmailConfirmationTestCase):
         """
         address = models.EmailAddress.objects.add_email(self.user, self.email)
         confirmation = models.EmailConfirmation.objects.get(email_address=address)
-        confirmation.sent = confirmation.sent - datetime.timedelta(days=11)
+        confirmation.sent = confirmation.sent - datetime.timedelta(days=15)
         confirmation.save()
 
         models.EmailConfirmation.objects.delete_expired_confirmations()
@@ -356,7 +364,7 @@ class EmailConfirmationTests(EmailConfirmationTestCase):
 
         self.assertEqual(confirmation.key_expired(), False)
 
-        confirmation.sent = confirmation.sent - datetime.timedelta(days=11)
+        confirmation.sent = confirmation.sent - datetime.timedelta(days=15)
         confirmation.save()
 
         self.assertEqual(confirmation.key_expired(), True)
@@ -371,7 +379,6 @@ class EmailConfirmationTests(EmailConfirmationTestCase):
 
 
 class ViewTests(EmailConfirmationTestCase):
-
     def test_confirm(self):
         """
         ``confirm`` takes the given confirmation key and attempts to confirm that email.

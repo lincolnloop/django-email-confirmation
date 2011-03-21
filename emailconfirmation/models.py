@@ -20,12 +20,11 @@ from emailconfirmation import app_settings
 class EmailAddressManager(models.Manager):
     
     def add_email(self, user, email):
-        try:
-            email_address = self.create(user=user, email=email)
-            EmailConfirmation.objects.send_confirmation(email_address)
-            return email_address
-        except IntegrityError:
+        email_address, created = self.get_or_create(user=user, email=email)
+        if not created:
             return None
+        EmailConfirmation.objects.send_confirmation(email_address)
+        return email_address
     
     def get_primary(self, user):
         try:
