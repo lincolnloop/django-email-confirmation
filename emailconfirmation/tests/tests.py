@@ -299,6 +299,9 @@ class EmailConfirmationManagerTests(EmailConfirmationTestCase):
         ``EmailConfirmation`` object.
 
         """
+        _old_default_protocol = getattr(models.settings, "DEFAULT_HTTP_PROTOCOL", NO_SETTING)
+        models.settings.DEFAULT_HTTP_PROTOCOL = "http"
+        
         address = models.EmailAddress.objects.create(user=self.user, email=self.email)
         confirmation = models.EmailConfirmation.objects.send_confirmation(address)
 
@@ -313,6 +316,11 @@ class EmailConfirmationManagerTests(EmailConfirmationTestCase):
         self.assertEqual(c["activate_url"], "http://example.com/confirm/%s/" % confirmation.confirmation_key)
         self.assertEqual(c["current_site"], Site.objects.get_current())
         self.assertEqual(c["confirmation_key"], confirmation.confirmation_key)
+
+        if _old_default_protocol is NO_SETTING:
+            delattr(models.settings._wrapped, "DEFAULT_HTTP_PROTOCOL")
+        else:
+            models.settings.DEFAULT_HTTP_PROTOCOL = _old_default_protocol
 
 
     def test_send_confirmation_respects_DEFAULT_HTTP_PROTOCOL(self):
