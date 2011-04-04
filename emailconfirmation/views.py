@@ -10,7 +10,7 @@ def confirm_email(request, confirmation_key, success_url=None):
     confirmation_key = confirmation_key.lower()
     email_address = EmailConfirmation.objects.confirm_email(confirmation_key)
     if email_address and success_url:
-        messages.success(request, "Thanks for confirming you email.")
+        messages.success(request, "Thanks for confirming your email.")
         return HttpResponseRedirect(success_url)
     return render_to_response("emailconfirmation/confirm_email.html", {
         "email_address": email_address,
