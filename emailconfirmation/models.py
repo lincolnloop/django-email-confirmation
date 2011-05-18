@@ -94,7 +94,15 @@ class EmailConfirmationManager(models.Manager):
         salt = sha_constructor(str(random())).hexdigest()[:5]
         confirmation_key = sha_constructor(salt + email_address.email).hexdigest()
         current_site = Site.objects.get_current()
-        path = reverse("emailconfirmation_confirm", args=[confirmation_key])
+        try:
+            path = reverse("emailconfirmation_confirm",
+                           args=[confirmation_key])
+        except NoReverseMatch:
+            # A third-party app may be using our view but a different name, so
+            # fall-back to reversing the exact view if name-based reversal
+            # fails.
+            path = reverse("emailconfirmation.views.confirm_email",
+                           args=[confirmation_key])
         protocol = getattr(settings, "DEFAULT_HTTP_PROTOCOL", "http")
         activate_url = u"%s://%s%s" % (
             protocol,
